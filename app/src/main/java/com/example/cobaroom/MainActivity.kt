@@ -35,7 +35,8 @@ class MainActivity : AppCompatActivity() {
 
         val _fabAdd = findViewById<FloatingActionButton>(R.id.fabAdd)
         var _rvDaftar = findViewById<RecyclerView>(R.id.rvDaftar)
-        adapterDaftar = adapterDaftar(arDaftar)
+
+        adapterDaftar = adapterDaftar(arDaftar, DB)
         _rvDaftar.layoutManager = LinearLayoutManager(this)
         _rvDaftar.adapter = adapterDaftar
 
@@ -61,7 +62,9 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         CoroutineScope(Dispatchers.Main).async {
             val daftarBelanja = DB.fundaftarBelanjaDAO().selectAll()
+            val historyBarang = DB.funHistoryBarangDAO().selectAll()
             Log.d("data ROOM", daftarBelanja.toString())
+            Log.d("data ROOM", historyBarang.toString())
             adapterDaftar.isiData(daftarBelanja)
         }
     }

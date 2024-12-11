@@ -8,8 +8,15 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.cobaroom.database.daftarBelanja
+import com.example.cobaroom.database.daftarBelanjaDB
+import com.example.cobaroom.database.historyBarang
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-class adapterDaftar ( private val daftarBelanja: MutableList<daftarBelanja>): RecyclerView.Adapter<adapterDaftar.ListViewHolder>() {
+class adapterDaftar ( private val daftarBelanja: MutableList<daftarBelanja>, private var DB: daftarBelanjaDB): RecyclerView.Adapter<adapterDaftar.ListViewHolder>() {
     private lateinit var onItemClickCallback : OnItemClickCallback
 
     interface OnItemClickCallback {
@@ -27,6 +34,7 @@ class adapterDaftar ( private val daftarBelanja: MutableList<daftarBelanja>): Re
 
         var _btnEdit = itemView.findViewById<ImageView>(R.id.btnEdit)
         var _btnDelete = itemView.findViewById<ImageView>(R.id.btnDelete)
+        val _btnSelesai = itemView.findViewById<ImageView>(R.id.btnSelesai)
     }
 
     override fun onCreateViewHolder(
@@ -52,6 +60,23 @@ class adapterDaftar ( private val daftarBelanja: MutableList<daftarBelanja>): Re
         }
 
         holder._btnDelete.setOnClickListener {
+            onItemClickCallback.delData(daftar)
+        }
+
+        holder._btnSelesai.setOnClickListener {
+            CoroutineScope(Dispatchers.IO).launch {
+                DB.fundaftarBelanjaDAO().delete(daftar)
+                DB.funHistoryBarangDAO().insert(
+                    historyBarang(
+                        tanggal = daftar.tanggal,
+                        item = daftar.item,
+                        jumlah = daftar.jumlah)
+                )
+                val daftarBaru = DB.fundaftarBelanjaDAO().selectAll()
+                withContext(Dispatchers.Main) {
+                    isiData(daftarBaru)
+                }
+            }
             onItemClickCallback.delData(daftar)
         }
 
